@@ -26,8 +26,22 @@ Keep changes focused and backwards compatible with existing environment variable
 
 Treat `openvpn/start.sh`, tunnel callbacks, `transmission/start.sh`, `scripts/route-pre-down.sh`, provider scripts, and firewall/routing code as security sensitive: changes can affect the VPN only startup guarantee or leak traffic. Preserve the tunnel address binding and stop behavior when editing them.
 
+`CREATE_TUN_DEVICE=true` is the image default and recreates `/dev/net/tun` during startup. When mapping the host's `/dev/net/tun` into the container, set `CREATE_TUN_DEVICE=false`; startup then checks that the path is a character device and can be opened for reading and writing. Keep `NET_ADMIN` for OpenVPN and network setup. When changing TUN handling, keep `docker-compose.yml` and the configuration examples in sync, and test both device modes and failure paths in a suitable Docker environment.
+
 Credentials can come from environment variables or `/run/secrets/openvpn_creds` and `/run/secrets/rpc_creds`; startup writes or links credential files under `/config`. Never commit real credentials, downloaded VPN configuration, generated `settings.json`, or persisted runtime files. Example credentials in `README.md` and `docker-compose.yml` are placeholders. Check logs and shell tracing for secret exposure when changing configuration handling.
 
-## Existing agent guidance
+Follow the checked in PR template and CI workflows above; personal Codex skills are not repository policy.
 
-No repository `AGENTS.md`, `.agents/`, `.codex/`, `.claude/`, `.cursor/`, `.windsurf/`, or other agent instruction file was present when this guide was created. No repository specific agent skill or prompt was found. Follow the checked in PR template and CI workflows above; available personal Codex skills are not repository policy.
+## Secrets and VPN Credentials
+
+- Never place VPN credentials, tokens, passwords, or other secrets in prompts, Git, run artifacts, logs, documentation, or command-line arguments.
+- For local PIA integration tests, credentials may be provided through an external environment file outside the repository and outside `~/ai`, for example:
+
+  `~/.config/transmission-openvpn/pia.env`
+
+- Treat credential files as opaque secret inputs.
+- Agents may reference the file path and pass it to Docker with `--env-file`, but must not read, display, copy, modify, or persist its contents.
+- Do not record secret values in `task.md`, `research.md`, `plan.md`, `implementation.md`, `review.md`, `qa.md`, or `metrics.json`.
+- Do not commit credential files.
+- Local credential files should have restrictive permissions such as `chmod 600`.
+- Prefer test containers and temporary test volumes; do not reuse production configuration or data unless explicitly approved.
