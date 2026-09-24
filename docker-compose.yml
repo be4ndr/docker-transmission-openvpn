@@ -5,7 +5,7 @@ services:
   cap_add:
     - NET_ADMIN
   devices:
-    - /dev/net/tun
+    - /dev/net/tun:/dev/net/tun
   restart: always
   ports:
     - "9091:9091"
@@ -14,6 +14,7 @@ services:
     - /your/storage/path/:/data # where transmission will store the data
     - /your/config/path/:/config # where transmission-home is stored
   environment:
+    - CREATE_TUN_DEVICE=false
     - OPENVPN_PROVIDER=PIA
     - OPENVPN_USERNAME=username
     - OPENVPN_PASSWORD=password

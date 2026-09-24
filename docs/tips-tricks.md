@@ -148,6 +148,18 @@ creates a TUN interface inside the container by default. This previously had to 
 from the host which was an issue for some NAS servers. The assumption is that this should
 now be fixed. If you have issues and the logs seem to blame "/dev/net/tun" in some way
 then you might consider trying to mount a host device and see if that works better.
+When mapping the host device to `/dev/net/tun`, set `CREATE_TUN_DEVICE=false` so the
+container uses the supplied device. Keep `NET_ADMIN` for OpenVPN and network setup:
+
+```yaml
+cap_add:
+  - NET_ADMIN
+devices:
+  - /dev/net/tun:/dev/net/tun
+environment:
+  CREATE_TUN_DEVICE: "false"
+```
+
 Setting up a TUN device is probably easiest to accomplish by installing an OpenVPN package
 for the NAS. This should set up the device and you can mount it.
 There are some issues involved in running it on Synology NAS, 
