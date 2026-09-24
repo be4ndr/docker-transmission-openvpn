@@ -32,7 +32,7 @@ secrets:
 | `OPENVPN_CONFIG`    | Sets the OpenVPN endpoint to connect to. Accepts a comma-separated list of items (one item is selected at random.)  | `OPENVPN_CONFIG=UK Southampton,UK Liverpool`                                                                                |
 | `OPENVPN_OPTS`      | Will be passed to OpenVPN on startup                                                                | See [OpenVPN doc](https://openvpn.net/index.php/open-source/documentation/manuals/65-openvpn-20x-manpage.html) |
 | `LOCAL_NETWORK`     | Sets the local network that should have access. Accepts comma-separated list.                       | `LOCAL_NETWORK=192.168.0.0/24`                                                                                 |
-| `CREATE_TUN_DEVICE` | Creates /dev/net/tun device inside the container, mitigates the need to mount the device from the host | `CREATE_TUN_DEVICE=true`                                                                                       |
+| `CREATE_TUN_DEVICE` | `true` (default) creates `/dev/net/tun` inside the container. Set to `false` when mapping `/dev/net/tun` from the host; startup checks that the mapped path is a character device and can be opened for reading and writing. Keep `NET_ADMIN` for OpenVPN and network setup. | `CREATE_TUN_DEVICE=false` with `devices: ["/dev/net/tun:/dev/net/tun"]` |
 | `OVERRIDE_DNS`      | Override the VPN-provided DNS servers. Use `OVERRIDE_DNS_1`, `OVERRIDE_DNS_2`, etc. for multiple servers. When set, VPN DNS will not be applied. | `OVERRIDE_DNS_1=8.8.8.8` `OVERRIDE_DNS_2=8.8.4.4`                                                             |
 
 ### Timezone option

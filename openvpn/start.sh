@@ -60,6 +60,15 @@ if [[ "${CREATE_TUN_DEVICE,,}" == "true" ]] ; then
   mkdir -p /dev/net
   mknod /dev/net/tun c 10 200
   chmod 0666 /dev/net/tun
+elif [[ "${CREATE_TUN_DEVICE,,}" == "false" ]]; then
+  if [[ ! -c /dev/net/tun ]]; then
+    echo "ERROR: CREATE_TUN_DEVICE=false requires a character device at /dev/net/tun." >&2
+    exit 1
+  fi
+  if ! ( exec 3<> /dev/net/tun && exec 3>&- ) 2>/dev/null; then
+    echo "ERROR: CREATE_TUN_DEVICE=false cannot open /dev/net/tun for reading and writing." >&2
+    exit 1
+  fi
 fi
 
 ##

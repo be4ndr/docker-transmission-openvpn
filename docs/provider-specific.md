@@ -105,11 +105,12 @@ services:
       dns:
         - 1.1.1.1
       devices:
-        - /dev/net/tun
+        - /dev/net/tun:/dev/net/tun
       sysctls:
         # must enable ipv6 to have njal.la work
         - net.ipv6.conf.all.disable_ipv6=0
       environment:
+        - CREATE_TUN_DEVICE=false
         - OPENVPN_PROVIDER=CUSTOM
         - OPENVPN_USERNAME=user
         - OPENVPN_PASSWORD=pass
