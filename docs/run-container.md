@@ -6,13 +6,11 @@ container management solutions like [Portainer](https://www.portainer.io/)
 
 This page will only discuss the tooling that a Docker installation comes with. That means `docker run ..`
 and `docker-compose`. In the end, that is what the other managers do as well and it's the common ground here.
-I'm very happy to set up a platform-specific installation page and link to it from here.
-Open an issue or PR if you want to contribute with documentation for your favourite platform.
+Platform-specific installation guidance can be proposed through an issue or pull request in the relevant repository.
 
 
-The images available on the Docker Hub are multi-arch manifests. This means that they point to multiple images
-that are built for different CPU architectures like ARM for Raspberry Pi. You can `haugene/transmission-openvpn`
-on any of these architectures and Docker will get the correct one.
+The upstream images on Docker Hub are multi-architecture manifests for CPU architectures such as ARM. You can run `haugene/transmission-openvpn`
+on a supported architecture and Docker will select the matching image. To run changes from this fork, build and tag it locally.
 
 ## Starting the container
 

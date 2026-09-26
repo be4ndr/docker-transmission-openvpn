@@ -1,23 +1,11 @@
-## How we manage VPN providers
+## How VPN providers are managed
 
-The container used to come bundled with a bunch of config files for a range of VPN providers.
-This was fine when it was a handful or even a dozen supported providers, but as we approached
-50 providers and 10k configs there wasn't time for anything else than keeping them up to date.
+The upstream project used to bundle configuration files for many VPN providers. As the number of providers and configurations grew, upstream moved static `.ovpn` files to
+[haugene/vpn-configs-contrib](https://github.com/haugene/vpn-configs-contrib).
 
-So we've tried to come up with a more maintainable setup. 
-We have split the .ovpn configs out to a separate repository at:
-[https://github.com/haugene/vpn-configs-contrib](https://github.com/haugene/vpn-configs-contrib).
+The container fetches those files at startup. Provider scripts that fetch configurations dynamically remain in this repository. This gives the container two provider types: `internal` and `external`.
 
-All static configs that have to be manually updated will live there and be pulled on container startup.
-We will try to set up a CODEOWNERS scheme and ask for more help from the community to keep them up to date.
-
-Some providers are still provided from the core project and those are the ones that have implemented
-a script for fetching the configs dynamically. Going forward we will allow code in this project, not config.
-
-So that is the story of how we now have two types of providers: `internal` and `external`.
-The benefit of having native support for external configs is that it is much simpler for a user to
-make a fork of the config repo and simply tell the container to use his or her fork. This way we can hopefully
-empower many more to help out with keeping our providers up to date and adding new ones.
+For external providers, you can use a fork of the configuration repository as the source for startup downloads.
 
 ## Out-of-the-box supported providers
 
@@ -42,11 +30,10 @@ download new configs directly from the provider on container startup.
 
 ### External Providers
 
-These providers are fetched from our [config repo](https://github.com/haugene/vpn-configs-contrib) on startup.
-They have to be manually updated in that repo when the provider changes them but we're trying to keep them up to date.
+These providers are fetched from the upstream [config repo](https://github.com/haugene/vpn-configs-contrib) on startup.
+Their configurations must be updated there when a provider changes them.
 
-Note that we try to keep this list in sync but it is the files and folders in the config repo that ultimately
-is the most up-to-date list of configs and providers that are supported.
+The files and folders in that repository are the most current list of external providers and configurations.
 
 
 | Provider Name             | Config Value (`OPENVPN_PROVIDER`) |

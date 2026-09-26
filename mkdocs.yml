@@ -1,6 +1,4 @@
 site_name: docker-transmission-openvpn
-site_url: http://haugene.github.io/docker-transmission-openvpn/
-repo_url: https://github.com/haugene/docker-transmission-openvpn/
 theme:
   name: 'material'
 markdown_extensions:
@@ -9,6 +7,7 @@ markdown_extensions:
         separator: "_"
 nav:
    - 'Overview': 'index.md'
+   - 'Downstream development': 'downstream-development.md'
    - 'Image Building Blocks': 'building-blocks.md'
    - 'VPN and Networking': 'vpn-networking.md'
    - 'Running the container': 'run-container.md'

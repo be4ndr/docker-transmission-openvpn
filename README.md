@@ -1,26 +1,20 @@
 # OpenVPN and Transmission with WebUI
 
-[![Docker Build](https://img.shields.io/github/actions/workflow/status/haugene/docker-transmission-openvpn/docker-image-builds.yml
-)](https://hub.docker.com/r/haugene/transmission-openvpn/)
-[![Docker Pulls](https://img.shields.io/docker/pulls/haugene/transmission-openvpn.svg)](https://hub.docker.com/r/haugene/transmission-openvpn/)
-
 This container contains OpenVPN and Transmission with a configuration
 where Transmission is running only when OpenVPN has an active tunnel.
 It has built-in support for many popular VPN providers to make the setup easier.
 
+This is a downstream fork of [haugene/docker-transmission-openvpn](https://github.com/haugene/docker-transmission-openvpn). The examples below pull the upstream `haugene/transmission-openvpn` image; build and tag this repository locally to run fork changes. This fork does not publish images or release tags through GitHub Actions. See [downstream development](docs/downstream-development.md) for its branch policy.
+
 ## Read this first
 
-The documentation for this image is hosted on GitHub pages:
+The upstream documentation is hosted on GitHub Pages:
 
 https://haugene.github.io/docker-transmission-openvpn/
 
-If you can't find what you're looking for there, please have a look
-in the [discussions](https://github.com/haugene/docker-transmission-openvpn/discussions)
-as we're trying to use that for general questions.
+For upstream behavior and general questions, see the upstream [discussions](https://github.com/haugene/docker-transmission-openvpn/discussions).
 
-If you have found what you believe to be an issue or bug, create an issue and provide
-enough details for us to have a chance to reproduce it or understand what's going on.
-**NB:** Be sure to search for similar issues (open and closed) before opening a new one.
+For a fork-specific bug, open an issue in this fork with enough detail to reproduce it. Remove credentials and tokens from logs and configuration before sharing them.
 
 ## Quick Start
 
@@ -123,25 +117,6 @@ Then have a look at [#2410](https://github.com/haugene/docker-transmission-openv
 and [this comment](https://github.com/haugene/docker-transmission-openvpn/issues/2410#issuecomment-1319299598)
 in particular. There is a fix and a workaround available.
 
-## Image versioning
+## Upstream image tags
 
-We aim to create periodic fixed releases with a [semver](https://semver.org/) versioning scheme.
-The latest of the tagged fixed releases will also have the `latest` tag.
-
-A semver release will be tagged with `major`, `major.minor` and `major.minor.patch` versions so that you can lock
-the version at either level.
-
-We also have a tag called `edge` which will always be the latest commit on `master`, and `dev` which is the last commit on the `dev` branch.
-From time to time we can also have various `beta` branches and tags, but using either dev or beta tags is probably not for the average user
-and you should expect there to be occasional breakage or even the deletion of the tags upstream.
-
-## Please help out (about:maintenance)
-This image was created for my own use, but sharing is caring, so it had to be open source.
-It has now gotten quite popular, and that's great! But keeping it up to date, providing support, fixes
-and new features take time. If you feel that you're getting a good tool and want to support it, there are a couple of options:
-
-A small monthly amount through [![Donate with Patreon](images/patreon.png)](https://www.patreon.com/haugene) or
-a one time donation with [![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=73XHRSK65KQYC)
-
-All donations are greatly appreciated! Another great way to contribute is of course through code.
-A big thanks to everyone who has contributed so far!
+The `latest`, versioned, `edge`, and `dev` tags for `haugene/transmission-openvpn` are maintained by upstream. They do not identify builds from this fork.

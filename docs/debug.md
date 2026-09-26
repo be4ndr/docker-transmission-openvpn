@@ -172,12 +172,12 @@ on the host instead of 9091 and avoid port conflict.
 
 ## Now what?
 
-If this guide has failed at some point then you should create an issue for it. Please add the command
-that you ran and the logs that were produced.
+If this guide fails for a locally built fork image, report it in this fork's issue tracker with the command
+and redacted logs. For an upstream image, use the upstream issue tracker.
 
 If you're now able to access Transmission and it seems to work correctly then you should add a volume mount
 to the `/data` folder in the container. You'll then have a setup like what's shown on the
-[main GitHub page](https://github.com/haugene/docker-transmission-openvpn/) of this project.
+[upstream GitHub repository](https://github.com/haugene/docker-transmission-openvpn/).
 
 If you have another setup that does not work then you now have two versions to compare and maybe
 that will lead you to find the error in your old setup. If the setup is the same but this version works then
