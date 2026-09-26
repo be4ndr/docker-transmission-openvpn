@@ -45,3 +45,10 @@ Follow the checked in PR template and CI workflows above; personal Codex skills 
 - Do not commit credential files.
 - Local credential files should have restrictive permissions such as `chmod 600`.
 - Prefer test containers and temporary test volumes; do not reuse production configuration or data unless explicitly approved.
+
+## Branch and downstream policy
+
+- Classify each task as generic or local-only before creating a branch. Start generic branches from `upstream-sync`; start PIA or other local-only branches from `master`.
+- Never copy, cherry-pick, or merge `AGENTS.md` into `upstream-sync` or other upstream work. Downstream-only documentation must not enter upstream pull requests.
+- Before new work, inspect relevant upstream issues, pull requests, discussions, commits, documentation, and maintainer guidance.
+- Before proposing an upstream pull request, verify its final diff against `upstream/master` and check for accidental local-only files.
