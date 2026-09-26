@@ -4,23 +4,11 @@
 
 <p align="center">
   Docker container running Transmission torrent client with WebUI over an OpenVPN tunnel
-  <br/><br/>
-  <a href="https://hub.docker.com/r/haugene/transmission-openvpn/">
-    <img alt="pulls" src="https://img.shields.io/docker/pulls/haugene/transmission-openvpn.svg" />
-  </a>
-  <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=73XHRSK65KQYC">
-    <img alt="Donate with PayPal" src="https://img.shields.io/badge/Donate-PayPal-green.svg">
-  </a>
-  <a href="https://www.patreon.com/haugene">
-    <img alt="Donate with Patreon" src="https://github.com/haugene/docker-transmission-openvpn/raw/master/images/patreon.png">
-  </a>
 </p>
 
 ## Welcome to the documentation!
 
-Writing good documentation is hard but we think that we're getting closer to a good place to search for answers.
-These pages are not done yet and you will meet some "under construction" notices. Please bear with us and if you spot
-mistakes or have suggestions - submit a PR :)
+These pages describe the container inherited from [haugene/docker-transmission-openvpn](https://github.com/haugene/docker-transmission-openvpn). Examples that name `haugene/transmission-openvpn` use the upstream published image. See [downstream development](downstream-development.md) for this fork's branch and automation policy.
 
 ## General Information
 
