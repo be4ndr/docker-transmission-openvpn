@@ -35,6 +35,10 @@ secrets:
 | `CREATE_TUN_DEVICE` | `true` (default) creates `/dev/net/tun` inside the container. Set to `false` when mapping `/dev/net/tun` from the host; startup checks that the mapped path is a character device and can be opened for reading and writing. Keep `NET_ADMIN` for OpenVPN and network setup. | `CREATE_TUN_DEVICE=false` with `devices: ["/dev/net/tun:/dev/net/tun"]` |
 | `OVERRIDE_DNS`      | Override the VPN-provided DNS servers. Use `OVERRIDE_DNS_1`, `OVERRIDE_DNS_2`, etc. for multiple servers. When set, VPN DNS will not be applied. | `OVERRIDE_DNS_1=8.8.8.8` `OVERRIDE_DNS_2=8.8.4.4`                                                             |
 
+### PIA port forwarding
+
+Set `TRANSMISSION_PIA_PF_HOSTNAME` to the PIA server hostname in the gateway certificate (for example, `amsterdam429`). PIA's manual connection tools list the matching hostname for each server. This is different from the region hostname in a standard OpenVPN profile, such as `nl-amsterdam.privacy.network`. The hostname must match the server used by the current VPN connection; if it is absent or incorrect, the port updater stops without changing Transmission's port. The updater connects to the tunnel gateway IP and verifies that server's certificate and hostname using PIA's `ca.rsa.4096.crt` CA.
+
 ### Timezone option
 
 Set a custom timezone in tz database format. Look [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for a list of valid timezones. Defaults to UTC.

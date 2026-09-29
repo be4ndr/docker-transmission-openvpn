@@ -19,7 +19,9 @@ pia_request() {
   local url=$1 auth=${2-} token=${3-} payload=${4-} signature=${5-}
   local a t p s
   local curl_opts=()
-  [[ -n $auth ]] || curl_opts+=(--insecure)
+  if [[ -z $auth ]]; then
+    curl_opts+=(--cacert "$pia_ca" --connect-to "$pf_hostname::$pf_host:")
+  fi
   a=$(curl_quote "$auth") || return 1
   t=$(curl_quote "$token") || return 1
   p=$(curl_quote "$payload") || return 1
@@ -56,6 +58,10 @@ pass=$(sed -n '2p' /config/openvpn-credentials.txt) || fail 'PIA credentials una
 [[ -n $user && -n $pass ]] || fail 'PIA credentials unavailable'
 pf_host=$(ip route 2>/dev/null | awk '/tun/ && !/src/ {print $3; exit}')
 [[ -n $pf_host ]] || fail 'PIA gateway unavailable'
+pia_ca=/etc/openvpn/pia-ca.rsa.4096.crt
+[[ -r $pia_ca ]] || fail 'PIA CA unavailable'
+pf_hostname=${TRANSMISSION_PIA_PF_HOSTNAME:-}
+[[ $pf_hostname =~ ^[A-Za-z0-9][A-Za-z0-9.-]*$ ]] || fail 'PIA PF hostname unavailable or invalid'
 
 get_auth_token() {
   local response
@@ -67,7 +73,7 @@ get_auth_token() {
 
 get_sig() {
   local response decoded
-  response=$(pia_request "https://$pf_host:19999/getSignature" '' "$tok") \
+  response=$(pia_request "https://$pf_hostname:19999/getSignature" '' "$tok") \
     || fail 'getSignature request failed'
   [[ $(jq -er '.status | select(. == "OK")' <<< "$response" 2>/dev/null) == OK ]] \
     || fail 'getSignature response invalid'
@@ -87,7 +93,7 @@ get_sig() {
 
 bind_port() {
   local response
-  response=$(pia_request "https://$pf_host:19999/bindPort" '' '' "$pf_payload" "$pf_getsignature") \
+  response=$(pia_request "https://$pf_hostname:19999/bindPort" '' '' "$pf_payload" "$pf_getsignature") \
     || fail 'bindPort request failed'
   [[ $(jq -er '.status | select(. == "OK")' <<< "$response" 2>/dev/null) == OK ]] \
     || fail 'bindPort response invalid'
@@ -100,7 +106,7 @@ remote() {
 
 bind_trans() {
   local attempt info current_port auth_setting
-  auth_setting=$(jq -er '."rpc-authentication-required" | select(type == "boolean")' \
+  auth_setting=$(jq -er '."rpc-authentication-required" | select(type == "boolean") | tostring' \
     "$transmission_settings_file" 2>/dev/null) || fail 'Transmission authentication setting invalid'
   auth_args=()
   if [[ $auth_setting == true ]]; then
@@ -115,7 +121,7 @@ bind_trans() {
   done
   printf 'Transmission became responsive\n'
   info=$(remote -si) || fail 'Transmission session read failed'
-  [[ $info =~ Listenport:[[:space:]]*([0-9]+) ]] || fail 'Transmission listening port invalid'
+  [[ $info =~ Listen[[:space:]]*port:[[:space:]]*([0-9]+) ]] || fail 'Transmission listening port invalid'
   current_port=${BASH_REMATCH[1]}
   ((current_port >= 1 && current_port <= 65535)) || fail 'Transmission listening port invalid'
   if [[ $pf_port != "$current_port" ]]; then
