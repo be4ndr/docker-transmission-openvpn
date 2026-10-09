@@ -39,6 +39,8 @@ secrets:
 
 Set `TRANSMISSION_PIA_PF_HOSTNAME` to the PIA server hostname in the gateway certificate (for example, `amsterdam429`). PIA's manual connection tools list the matching hostname for each server. This is different from the region hostname in a standard OpenVPN profile, such as `nl-amsterdam.privacy.network`. The hostname must match the server used by the current VPN connection; if it is absent or incorrect, the port updater stops without changing Transmission's port. The updater connects to the tunnel gateway IP and verifies that server's certificate and hostname using PIA's `ca.rsa.4096.crt` CA.
 
+The updater obtains authentication tokens from PIA's `/api/client/v2/token` API using the existing OpenVPN credentials. [PIA's manual connection script](https://github.com/pia-foss/manual-connections/blob/master/get_token.sh) documents a 24-hour token lifetime; the updater starts refreshing with one hour remaining and retries failed refreshes at the next 15-minute interval. Token refresh leaves the current forwarded port unchanged. If authentication is temporarily unavailable, the updater continues binding the existing port reservation, but it must obtain a valid token before requesting a new reservation after token expiration. Initial token failures stop the updater. Credentials, tokens, and signed PF payloads are not printed or passed in process arguments.
+
 ### Timezone option
 
 Set a custom timezone in tz database format. Look [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for a list of valid timezones. Defaults to UTC.
