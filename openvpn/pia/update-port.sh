@@ -16,28 +16,20 @@ curl_quote() {
 }
 
 pia_request() {
-  local url=$1 auth=${2-} token=${3-} payload=${4-} signature=${5-}
-  local a t p s
-  local curl_opts=()
-  if [[ -z $auth ]]; then
-    curl_opts+=(--cacert "$pia_ca" --connect-to "$pf_hostname::$pf_host:")
-  fi
-  a=$(curl_quote "$auth") || return 1
+  local url=$1 token=${2-} payload=${3-} signature=${4-}
+  local t p s
   t=$(curl_quote "$token") || return 1
   p=$(curl_quote "$payload") || return 1
   s=$(curl_quote "$signature") || return 1
   {
-    if [[ -n $auth ]]; then
-      printf 'request = "POST"\nuser = "%s"\n' "$a"
+    printf 'get\n'
+    if [[ -n $token ]]; then
+      printf 'data-urlencode = "token=%s"\n' "$t"
     else
-      printf 'get\n'
-      if [[ -n $token ]]; then
-        printf 'data-urlencode = "token=%s"\n' "$t"
-      else
-        printf 'data-urlencode = "payload=%s"\ndata-urlencode = "signature=%s"\n' "$p" "$s"
-      fi
+      printf 'data-urlencode = "payload=%s"\ndata-urlencode = "signature=%s"\n' "$p" "$s"
     fi
-  } | curl --config - "${curl_opts[@]}" --silent --fail --connect-timeout 10 --max-time 15 \
+  } | curl --disable --config - --cacert "$pia_ca" --connect-to "$pf_hostname::$pf_host:" \
+      --silent --fail --connect-timeout 10 --max-time 15 \
       --retry 5 --retry-delay 15 --retry-max-time 120 "$url" 2>/dev/null
 }
 
@@ -64,16 +56,46 @@ pf_hostname=${TRANSMISSION_PIA_PF_HOSTNAME:-}
 [[ $pf_hostname =~ ^[A-Za-z0-9][A-Za-z0-9.-]*$ ]] || fail 'PIA PF hostname unavailable or invalid'
 
 get_auth_token() {
-  local response
-  response=$(pia_request 'https://www.privateinternetaccess.com/gtoken/generateToken' "$user:$pass") \
-    || fail 'token request failed'
-  tok=$(jq -er '.token | select(type == "string" and length > 0)' <<< "$response" 2>/dev/null) \
-    || fail 'token response invalid'
+  local response http_status new_tok requested_at u p status=0
+  token_error='PIA credentials invalid'
+  u=$(curl_quote "$user") || return 1
+  p=$(curl_quote "$pass") || return 1
+  token_error='Clock unavailable'
+  requested_at=$(date +%s) || return 1
+  response=$({
+    printf 'request = "POST"\ndata-urlencode = "username=%s"\ndata-urlencode = "password=%s"\n' "$u" "$p"
+  } | curl --disable --config - --silent --fail --connect-timeout 10 --max-time 15 \
+      --retry 5 --retry-delay 15 --retry-max-time 120 --write-out $'\n%{http_code}' \
+      'https://www.privateinternetaccess.com/api/client/v2/token' 2>/dev/null) || status=$?
+  http_status=${response##*$'\n'}
+  if [[ $http_status == 401 || $http_status == 403 ]]; then
+    token_error='token authentication failed'
+    return 1
+  fi
+  token_error='token request failed'
+  ((status == 0)) && [[ $http_status =~ ^2[0-9][0-9]$ ]] || return 1
+  response=${response%$'\n'*}
+  token_error='token response invalid'
+  new_tok=$(jq -ers '
+    select(length == 1) | .[0] | select(type == "object") |
+    select((has("status") | not) or .status == "OK" or .status == "ok") |
+    select(.error == null) | .token |
+    select(type == "string" and length > 0 and . != "null" and
+      (test("[[:space:][:cntrl:]]") | not))
+  ' <<< "$response" 2>/dev/null) || return 1
+  # PIA documents a 24-hour lifetime. Count from request start so retries
+  # cannot extend it; publish the replacement only after full validation.
+  tok=$new_tok
+  auth_token_expiry=$((requested_at + 24 * 60 * 60))
 }
 
 get_sig() {
-  local response decoded
-  response=$(pia_request "https://$pf_hostname:19999/getSignature" '' "$tok") \
+  local response decoded now
+  now=$(date +%s) || fail 'Clock unavailable'
+  if ((now >= auth_token_expiry)); then
+    get_auth_token || fail "$token_error"
+  fi
+  response=$(pia_request "https://$pf_hostname:19999/getSignature" "$tok") \
     || fail 'getSignature request failed'
   [[ $(jq -er '.status | select(. == "OK")' <<< "$response" 2>/dev/null) == OK ]] \
     || fail 'getSignature response invalid'
@@ -93,7 +115,7 @@ get_sig() {
 
 bind_port() {
   local response
-  response=$(pia_request "https://$pf_hostname:19999/bindPort" '' '' "$pf_payload" "$pf_getsignature") \
+  response=$(pia_request "https://$pf_hostname:19999/bindPort" '' "$pf_payload" "$pf_getsignature") \
     || fail 'bindPort request failed'
   [[ $(jq -er '.status | select(. == "OK")' <<< "$response" 2>/dev/null) == OK ]] \
     || fail 'bindPort response invalid'
@@ -136,24 +158,36 @@ bind_trans() {
 }
 
 printf 'Running PIA token based port forwarding\n'
-get_auth_token
+get_auth_token || fail "$token_error"
 get_sig
 bind_port
 bind_trans
 format_expiry=$(date -d "@$pf_token_expiry" 2>/dev/null) || fail 'Expiration formatting failed'
 printf 'Port: %s\nExpiration: %s\nEvery 15 minutes, check port status\n' "$pf_port" "$format_expiry"
 pf_minreuse=$((60 * 60 * 24 * 7))
+auth_refresh_margin=$((60 * 60))
 while true; do
   now=$(date +%s) || fail 'Clock unavailable'
   pf_remaining=$((pf_token_expiry - now))
   if ((pf_remaining < pf_minreuse)); then
     printf 'Port reservation nearing expiration; requesting a new one\n'
-    get_auth_token
     get_sig
     bind_port
     bind_trans
   fi
   sleep 900 &
-  wait $! || fail 'Port rebind timer failed'
+  pf_rebind_timer=$!
+  # Refresh during the existing wait so authentication retries do not add
+  # time to the 15-minute bind interval.
+  if ((auth_token_expiry - now <= auth_refresh_margin)); then
+    if get_auth_token; then
+      printf 'PIA authentication token refreshed\n'
+    else
+      # A token is only needed for getSignature. Keep binding the existing
+      # reservation during an auth outage and retry on the next interval.
+      printf 'PIA port forwarding: %s; will retry token refresh\n' "$token_error" >&2
+    fi
+  fi
+  wait "$pf_rebind_timer" || fail 'Port rebind timer failed'
   bind_port
 done
